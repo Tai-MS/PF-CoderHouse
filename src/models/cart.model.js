@@ -10,6 +10,6 @@ const cartShcema = new mongoose.Schema({
     total: {type: Number, default: 0}
 })
 
-const cartModel = mongoose.model(cartShcema, cartCollection)
+const cartModel = mongoose.model(cartCollection, cartShcema)
 
 export default cartModel

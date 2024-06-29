@@ -1,10 +1,17 @@
-import userClass from "../persistence/user.persistence.js"
+import service from '../services/users.service.js'
 
 async function createUser(req, res, next){
     const fields = req.body
-    
-    
-    const call = await userClass.createUser(fields)
+    /*
+        Type of Responses:
+            0: missing fields
+            1: email in use
+            2: passwords doesn`t match
+            other: other
+            true: accomplished
+    */
+           
+    const call = await service.createUser(fields)
     console.log(call);
     if(call === true){
         res.status(200).send('User created')
@@ -15,7 +22,7 @@ async function createUser(req, res, next){
     }else if(call === 2){
         res.status(200).send('Passwords doesn`t match')
     }else{
-        res.status(200).send('Internal Server Error')
+        res.status(404).send('Unexpected error')
     }
 }
 
@@ -24,7 +31,30 @@ async function createUserPassportGH(req, res, next){
 }
 
 async function login(req, res, next){
-    
+    /*
+        Type of Responses:
+            0: Incorrect credentials
+            1: User don`t found
+            other: other
+            true: accomplished
+    */
+    const fields = req.body
+    const call = await service.login(fields)
+    console.log(call);
+    if(call === true){
+        req.user = { email: call.email, id: call.id }; 
+        next(); 
+        res.send('logged')
+
+    }else if(call === 0){
+        res.status(200).send('Incorrect credentials')
+
+    }else if(call === 1){
+        res.status(200).send('User don`t found')
+
+    }else{
+        res.status(404).send('Unexpected error')
+    }
 }
 
 async function loginPassportGH(req, res, next){
@@ -32,11 +62,19 @@ async function loginPassportGH(req, res, next){
 }
 
 async function changePassword(req, res, next){
-    
+    const fields = req.body
+    const call = service.changePassword(fields)
+    res.send(call)
 }
 
 async function updateUser(req, res, next){
-    
+    const fields = req.body
+    const call = await service.updateUser(fields);
+    if(call === true){
+        res.status(200).send('User updated')
+    }else{
+        res.status(404).send('Unexpected error')
+    }
 }
 
 async function logout(req, res, next){

@@ -31,10 +31,6 @@ const userSchema = new mongoose.Schema({
     lastConnection: {type: String}
 })
 
-
-
-
-
 const userModel = mongoose.model(usersCollection, userSchema)
 
 export default userModel

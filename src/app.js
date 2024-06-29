@@ -2,13 +2,13 @@
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import hbs from 'hbs'
-import bodyParser from 'body-parser'
 
 //Internal imports
 import { __dirname, constants } from './utils/utils.js'
 import { connections, connectDB } from './utils/database.js'
 
 const app = express()
+//Middlewares
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(cookieParser('myParser'))
@@ -28,8 +28,6 @@ app.use('/sessions', sessionsRouter)
 app.use('/userSession', userSessionRouter)
 app.use('/', viewsRouter)
 
-//Middlewares
-
 //HBS Configuration
 hbs.registerPartials(__dirname, '/views', function (err) {})
 app.set('View engine', 'hbs')
@@ -43,5 +41,3 @@ app.listen(constants.PORT, () => {
     console.log(`Server running at port ${constants.PORT}`);
 })
 connectDB()
-
-

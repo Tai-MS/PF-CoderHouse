@@ -1,50 +1,87 @@
 import userModel from '../models/user.model.js'
-import {createHash} from '../utils/utils.js'
 import bcrypt from 'bcrypt'
-class UserClass{
+import cartClass from './carts.persistence.js'
+import mongoose from 'mongoose'
 
-    async createUser(fields){
-        /*
-            Type of Errors:
-                0: missing fields
-                1: email in use
-                2: passwords doesn`t match
-                3: other
-                true: accomplished
-        */
-        const {firstName, lastName, email, age, password, confirmPass } = fields
-        console.log(fields);
-        if(!firstName || !lastName || !email || !age || !password ||!confirmPass){
-            return 0
-        }
-        const fullName = firstName + " " + lastName
-        const existingUser = await userModel.find({email: email})
-        if(existingUser.length !== 0){
-            console.log("f");
-            return 1
-        }
+class UserClass {
+    async createUser(fields) {
+        try {
+            const {fullName, email, age, password} = fields
+            
+            const existingUser = await userModel.find({email: email})
+            if (existingUser.length !== 0) {
+                return 1
+            }
 
-        if(password !== confirmPass){
-            return 2
-        }
+            // Generar un _id manualmente
+            const userId = new mongoose.Types.ObjectId();
 
-        const hashedPass = await bcrypt.hash(password, 10)
-        console.log(hashedPass);
-        await userModel.create({
-            fullName: fullName,
-            email: email,
-            age: age,
-            password: hashedPass,
-            role: 2,
-            documents: [],
-            lastConnection: 'None'
-        })
-        
-        return true
+            // Crear el carrito con el mismo _id
+            const cart = await cartClass.createCart(userId);
+
+            // Asegurar que el carrito se haya creado correctamente
+            if (!cart) {
+                throw new Error('Error creating cart');
+            }
+
+            // Crear el usuario con el mismo _id
+            fields = {
+                ...fields,
+                _id: userId, // Asignar el mismo _id
+                cart: userId // Asumimos que el campo `cart` guarda el _id del carrito
+            }
+
+            await userModel.create(fields);
+            return true;
+            
+        } catch (error) {
+            console.error("Error creating user:", error);
+            return error;
+        }
     }
 
+    async getUser(email) {
+        try {
+            const user = await userModel.findOne({email: email})
+            if (user) {
+                return user
+            }
+            return 0
+        } catch (error) {
+            return error
+        }
+    }
+
+    async login(fields) {
+        try {
+            const {email, password} = fields
+            const existingUser = await this.getUser(email)
+            
+            if (!existingUser) {
+                return 1
+            }
+
+            const comparedPass = await bcrypt.compare(password, existingUser.password)
+            await userModel.updateOne({email: email}, {lastConnection: fields.date})
+            if (!comparedPass) {
+                return 0
+            }
+            return true
+        } catch (error) {
+            return error
+        }
+    }
+
+    async updateUser(fields) {
+        try {
+            await userModel.updateOne({email: fields.email}, fields, { new: true });
+            return true;
+        } catch (error) {
+            return error;
+        }
+    }
 }
 
-const userClass = new UserClass()
+const userClass = new UserClass();
 
-export default userClass
+export default userClass;

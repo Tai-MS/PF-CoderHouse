@@ -15,6 +15,3 @@ export const constants = {
     ADMIN_EMAIL: process.env.ADMIN_EMAIL
 }
 
-export function createHash(toHash){
-    return bcrypt.hash(toHash, constants.SECRET_KEY)
-}
