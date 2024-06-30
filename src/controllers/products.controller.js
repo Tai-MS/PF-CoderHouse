@@ -1,7 +1,11 @@
 import service from '../services/products.service.js'
 
 async function createProduct(req, res, next){
-    const fields = req.body
+    let fields = req.body
+    fields = {
+        ...fields,
+        user: req.user.email
+    }
     const call = await service.createProduct(fields)
     if(!call){
         return res.status(200).send('Missing fields.')
@@ -42,19 +46,18 @@ async function totalPages(req, res, next){
 async function getProduct(req, res, next){
     const id = req.body.id
     const call = await service.getProduct(id)
-    console.log(call);
     if(!call){
         return res.status(200).send('Product don`t found.')
     }
     return res.send(call)
 }
 
-async function getAll(req, res, next){
-    const call = await service.getAll()
-    if(call.length < 1){
-        return res.status(200).send('Unexpected error has occurred.')
+async function getAll() {
+    const call = await service.getAll();
+    if (!Array.isArray(call) || call.length < 1) {
+        throw new Error('Unexpected error has occurred.');
     }
-    return res.send(call)
+    return call;
 }
 
 

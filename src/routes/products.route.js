@@ -5,7 +5,7 @@ import productsController from '../controllers/products.controller.js'
 
 const router = express.Router()
 
-router.get('/', verifyToken,async(req, res, next) => {
+router.get('/',verifyToken ,async(req, res, next) => {
     await productsController.getAll(req, res, next)
 })
 

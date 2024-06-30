@@ -1,5 +1,5 @@
 import { mongoose } from 'mongoose'
-import { constants } from './utils.js'
+import { constants } from '../utils.js'
 
 export function connections(){
     mongoose.connect(constants.MONGO_CONNECT)

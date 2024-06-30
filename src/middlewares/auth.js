@@ -1,8 +1,28 @@
+// auth.js
 import jwt from 'jsonwebtoken'
-import { constants } from '../utils/utils.js'
+import { constants } from '../utils.js'
 
 const tokenBlacklist = new Set();
+export const verifyTokenSocket = (socket, next) => {
+    const token = socket.handshake.auth.token;
 
+    if (!token) {
+        const err = new Error('Authentication error');
+        err.data = { content: 'Token not provided' }; 
+        return next(err);
+    }
+
+    jwt.verify(token, constants.SECRET_KEY, (err, decoded) => {
+        if (err) {
+            const error = new Error('Authentication error');
+            error.data = { content: 'Invalid token' }; 
+            return next(error);
+        }
+
+        socket.user = decoded; 
+        next();
+    });
+};
 export function generateToken(req, res, next) {
     const { email, id } = req.body; 
     const token = jwt.sign({
@@ -10,19 +30,21 @@ export function generateToken(req, res, next) {
         id: id
     }, constants.SECRET_KEY,
     { expiresIn: '30m' });
+    res.locals.token = token; 
     res.header('auth-token', token);
-    console.log(token);
+    console.log('auth-token',token);
     next();
 }
 
 export function verifyToken(req, res, next) {
-    const token = req.header('auth-token');
+    //Use this variable if the login is made trough the API, not the frontend
+    // const token = req.header('auth-token');
+    const token = req.cookies['auth-token'];
     if (!token) return res.status(401).send('Access Denied');
 
     if (tokenBlacklist.has(token)) {
         return res.status(403).send('Token has been revoked');
     }
-    
     try {
         const verified = jwt.verify(token, constants.SECRET_KEY);
         req.user = verified;
@@ -33,10 +55,8 @@ export function verifyToken(req, res, next) {
 }
 
 export function revokeToken(req, res, next) {
-    const token = req.header('auth-token');
+    const token = req.cookies['auth-token'];
     if (!token) return res.status(400).send('Token is required');
-    console.log('loggedout');
     tokenBlacklist.add(token);
-    console.log(tokenBlacklist);
-    res.status(204).send(); 
+    res.status(200).render('login'); 
 }

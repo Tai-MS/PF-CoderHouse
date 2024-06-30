@@ -35,7 +35,6 @@ class UserClass {
             return true;
             
         } catch (error) {
-            console.error("Error creating user:", error);
             return error;
         }
     }

@@ -1,7 +1,6 @@
-import { dirname } from 'path'
+import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import dotenv from 'dotenv'
-import bcrypt from 'bcrypt'
 
 const __filename = fileURLToPath(import.meta.url)
 export const __dirname = dirname(__filename)
@@ -15,3 +14,5 @@ export const constants = {
     ADMIN_EMAIL: process.env.ADMIN_EMAIL
 }
 
+// Correcting __dirname to point to the root directory
+export const rootDir = join(__dirname, '../')

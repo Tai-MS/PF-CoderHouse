@@ -12,7 +12,6 @@ async function createUser(req, res, next){
     */
            
     const call = await service.createUser(fields)
-    console.log(call);
     if(call === true){
         res.status(200).send('User created')
     }else if(call === 0){
@@ -30,30 +29,19 @@ async function createUserPassportGH(req, res, next){
     
 }
 
-async function login(req, res, next){
-    /*
-        Type of Responses:
-            0: Incorrect credentials
-            1: User don`t found
-            other: other
-            true: accomplished
-    */
-    const fields = req.body
-    const call = await service.login(fields)
-    console.log(call);
-    if(call === true){
-        req.user = { email: call.email, id: call.id }; 
-        next(); 
-        res.send('logged')
-
-    }else if(call === 0){
-        res.status(200).send('Incorrect credentials')
-
-    }else if(call === 1){
-        res.status(200).send('User don`t found')
-
-    }else{
-        res.status(404).send('Unexpected error')
+async function login(req, res, next) {
+    const fields = req.body;
+    const call = await service.login(fields);
+    res.cookie('auth-token', res.locals.token, { httpOnly: true });
+    if (call === true) {
+        req.user = { email: fields.email, id: call.id }; 
+        res.redirect('/products')
+    } else if (call === 0) {
+        res.status(200).send('Incorrect credentials');
+    } else if (call === 1) {
+        res.status(200).send('User don`t found');
+    } else {
+        res.status(404).send('Unexpected error');
     }
 }
 

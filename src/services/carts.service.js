@@ -1,4 +1,5 @@
 import cartClass from "../persistence/carts.persistence.js"
+import userClass from "../persistence/user.persistence.js"
 
 async function createCart(){
     return await cartClass.createCart()
@@ -13,18 +14,22 @@ async function addProductToCart(fields){
 }
 
 async function deleteProductFromCart(fields){
-    return await cartClass.deleteProductFromCart(fields)    
+    return await cartClass.deleteProduct(fields)    
 }
 
 async function getAll(){
     return await cartClass.getAll()
 }
 
-async function getOneCart(fields){
-    return await cartClass.getOneCart(fields)
+async function getCart(fields){
+        const a= await cartClass.getCart(fields._id)
+        console.log(a);
+        return a
+    
+    return 0
 }
 
-async function cleanCart(fields){
+async function clearCart(fields){
     return await cartClass.cleanCart(fields)
 }
 
@@ -34,6 +39,6 @@ export default{
     addProductToCart,
     deleteProductFromCart,
     getAll,
-    getOneCart, 
-    cleanCart
+    getCart, 
+    clearCart
 }

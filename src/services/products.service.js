@@ -1,30 +1,36 @@
 import productsClass from '../persistence/products.persistence.js'
+import userClass from '../persistence/user.persistence.js'
 
 async function createProduct(fields){
     const {title, description, code, price, status, stock, category,
-        thumbnail, owner
+        thumbnail, owner, user
     } = fields
 
-    const existingCode = await productsClass.verifyCode(code)
-
-    if(!title || !description || !code || !price || !category || !stock || !status){
-        return 0
-    }
-
-    if(existingCode){
-        console.log(1);
-        return 1
-    }
+    const userRole = await userClass.getUser(user)
+    console.log(userRole);
+    if(userRole.role === 'admin' || userRole.role === 'premium'){
+        const existingCode = await productsClass.verifyCode(code)
     
-    if(!thumbnail){
-        fields.thumbnail = 'No image'
+        if(!title || !description || !code || !price || !category || !stock || !status){
+            return 0
+        }
+    
+        if(existingCode){
+            console.log(1);
+            return 1
+        }
+        
+        if(!thumbnail){
+            fields.thumbnail = 'No image'
+        }
+    
+        
+        fields.owner = userRole._id
+        
+    
+        return productsClass.createProd(fields)
     }
-
-    if(!owner){
-        fields.owner = 'admin'
-    }
-
-    return productsClass.createProd(fields)
+    return 3
 }
 
 async function updateProduct(fields){
