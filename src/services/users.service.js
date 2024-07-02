@@ -1,5 +1,8 @@
 import userClass from "../persistence/user.persistence.js";
 import bcrypt from 'bcrypt'
+import { generateToken } from "../middlewares/auth.js";
+import transport from '../utils/mailer.js'
+import { constants } from "../utils.js";
 
 async function createUser(fields){
     
@@ -47,8 +50,56 @@ async function loginPassportGH(){
     
 }
 
-async function changePassword(){
+async function reqChangePass(fields){
+    const user = userClass.getUser(fields)
+    if(!user){
+        return 0
+    }
+
+    const token = generateToken({ email: fields.email });
+    await transport.sendEmail({
+        from: constants.USERMAILER,
+        to: fields,
+        subject: 'Request for password reset.',
+        html: `
+          <div>
+              <h1>Solicitud for password reset.</h1>
+              <p>We've received a notification that you want to change your password. If it was you, follow the next link: ${fields}.</p>
+              <p>E-Commerce CoderHouse Password Reset</p>
+              <a href="http://localhost:8080/changepass/${token}" style="text-decoration: none;">
+                  <button style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                      Change Password
+                  </button>
+              </a>
+          </div>
+      `
+
+    })
+}
+
+async function changePassword(fields){
+    const {email, newPass, confirmNewPass} = fields
+    const user = await userClass.getUser(email)
+    if(!email || !newPass || !confirmNewPass || !user){
+        return 0
+    }
+
+    const comparedWithOldPass = await bcrypt.compare(newPass, user.password)
+    if(comparedWithOldPass){
+        return 1
+    }
     
+    if(newPass != confirmNewPass){
+        return 2
+    }
+    const hashedNewPass = bcrypt.hash(newPass)
+    fields = {
+        ...fields,
+        user: user,
+        newPass: hashedNewPass
+    }
+
+    return await userClass.changePassword(fields)
 }
 
 async function updateUser(fields) {
@@ -96,5 +147,6 @@ export default{
     changePassword,
     updateUser,
     logout,
-    changeRole
+    changeRole,
+    reqChangePass
 }

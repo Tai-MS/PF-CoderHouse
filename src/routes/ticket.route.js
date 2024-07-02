@@ -9,9 +9,4 @@ router.post('/', verifyToken,async(req, res, next) => {
     await ticketController.generateTicket(req, res, next)
 })
 
-
-
-
-
-
 export default router

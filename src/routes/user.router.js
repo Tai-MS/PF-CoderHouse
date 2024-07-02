@@ -14,6 +14,10 @@ router.post('/logout', verifyToken, revokeToken);
 
 router.put('/updateUser', verifyToken, userController.updateUser)
 
+router.post('/reqchangepass', async(req, res, next) => {
+    userController.reqChangePassword(req, res, next)
+})
+
 router.put('/changePass', verifyToken, userController.changePassword)
 
 export default router

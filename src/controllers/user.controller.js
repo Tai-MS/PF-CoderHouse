@@ -1,4 +1,7 @@
+import usersService from '../services/users.service.js';
 import service from '../services/users.service.js'
+import transport from '../utils/mailer.js'
+
 
 async function createUser(req, res, next){
     const fields = req.body
@@ -10,10 +13,10 @@ async function createUser(req, res, next){
             other: other
             true: accomplished
     */
-           
+    console.log(fields);
     const call = await service.createUser(fields)
     if(call === true){
-        res.status(200).send('User created')
+        res.status(200).redirect('/')
     }else if(call === 0){
         res.status(200).send('Missing fields')
     }else if(call === 1){
@@ -49,6 +52,11 @@ async function loginPassportGH(req, res, next){
     
 }
 
+async function reqChangePassword(req, res, next){
+    const fields = req.body.email
+    return await usersService.reqChangePass(fields)
+}
+
 async function changePassword(req, res, next){
     const fields = req.body
     const call = service.changePassword(fields)
@@ -81,5 +89,6 @@ export default{
     changePassword,
     updateUser,
     logout,
-    changeRole
+    changeRole,
+    reqChangePassword
 }

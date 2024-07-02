@@ -38,6 +38,7 @@ function updateTable(products) {
 
     products.forEach(product => {
         const row = document.createElement('tr');
+        
         row.innerHTML = `
             <td>${product._id}</td>
             <td>${product.title}</td>
@@ -48,10 +49,33 @@ function updateTable(products) {
             <td>${product.stock}</td>
             <td>${product.category}</td>
             <td>${product.thumbnail}</td>
-            <td><button id="button-${buttonId++}">Add to cart</button></td>
+            <td><button id="button-${buttonId}" ${product.stock <= 0 ? 'disabled' : ''}>Add to cart</button></td>
         `;
         tableContainer.appendChild(row);
+        buttonId++;
     });
+
+/**
+ * FORMA ANTERIOR DE GENERAR LA VIEW
+ * products.forEach(product => {
+        const row = document.createElement('tr');
+        
+        row.innerHTML = 
+            <td>${product._id}</td>
+            <td>${product.title}</td>
+            <td>${product.description}</td>
+            <td>${product.code}</td>
+            <td>${product.price}</td>
+            <td>${product.status}</td>
+            <td>${product.stock}</td>
+            <td>${product.category}</td>
+            <td>${product.thumbnail}</td>
+            <td><button id="button-${buttonId++}">Add to cart</button></td>
+        ;
+        tableContainer.appendChild(row);
+    });
+ */
+
 
     products.forEach((product, index) => {
         const button = document.getElementById(`button-${index}`);

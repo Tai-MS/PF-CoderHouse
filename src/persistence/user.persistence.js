@@ -45,6 +45,10 @@ class UserClass {
             if (user) {
                 return user
             }
+            const userById = await userModel.findOne({_id: email})
+            if(userById){
+                return userById
+            }
             return 0
         } catch (error) {
             return error
@@ -77,6 +81,16 @@ class UserClass {
             return true;
         } catch (error) {
             return error;
+        }
+    }
+
+    async changePassword(fields){
+        try {
+            const {user, newPass} = fields
+
+            return await userModel.updateOne({_id: user._id}, {password: newPass})
+        } catch (error) {
+            return error
         }
     }
 }

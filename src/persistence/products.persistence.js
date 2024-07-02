@@ -58,16 +58,38 @@ class ProductsClass{
 
     }
 
-    async updateprod(fields){
+    async updateprod(fields) {
+        try {
+            const id = fields.id;
+            const product = await this.getOne(id);  
+            if (product.stock <= 0 || (product.stock - fields.stock) <= 0) {
+                fields.stock = 0;
+            }
+            await productsModel.updateOne({ _id: id }, fields);
+            return true;
+        } catch (error) {
+            return { error: error.message };
+        }
+    }
+
+/**
+ * FORMA VIEJA DE UPDATEPROD
+ * async updateprod(fields){
         try{
             const id = fields.id
             const product = this.getOne(id)
+            if(product.stock <= 0 || (product.stock - fields.stock) <= 0){
+                fields.stock = 0
+            }
             await productsModel.updateOne({_id: id}, fields)
             return true
         }catch(error){
             return error
         }
     }
+esta bien esta logica?
+ */
+
 
     async verifyStock(id){
         try {

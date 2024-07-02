@@ -11,8 +11,10 @@ export const constants = {
     MONGO_CONNECT: process.env.MONGO_CONNECT,
     SECRET_KEY: process.env.SECRET_KEY,
     ENVI: process.env.ENVI,
-    ADMIN_EMAIL: process.env.ADMIN_EMAIL
-}
+    ADMIN_EMAIL: process.env.ADMIN_EMAIL,
+    USERMAILER: process.env.USERMAILER,
+    PASSMAILER: process.env.PASSMAILER
+} 
 
 // Correcting __dirname to point to the root directory
 export const rootDir = join(__dirname, '../')

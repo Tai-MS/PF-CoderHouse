@@ -28,6 +28,7 @@ import cartsRouter from './routes/carts.route.js';
 import sessionsRouter from './routes/session.route.js';
 import userSessionRouter from './routes/user.session.route.js';
 import viewsRouter from './routes/views.route.js';
+import ticketRouter from './routes/ticket.route.js'
 import { verifyToken } from './middlewares/auth.js';
 
 //Routes
@@ -36,6 +37,7 @@ app.use('/api', productsRouter);
 app.use('/carts', cartsRouter);
 app.use('/sessions', sessionsRouter);
 app.use('/userSession', userSessionRouter);
+app.use('/ticket', ticketRouter)
 app.use('/', viewsRouter);
 
 // HBS Configuration

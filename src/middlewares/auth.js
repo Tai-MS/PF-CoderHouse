@@ -32,7 +32,7 @@ export function generateToken(req, res, next) {
     { expiresIn: '30m' });
     res.locals.token = token; 
     res.header('auth-token', token);
-    console.log('auth-token',token);
+    console.log(token);
     next();
 }
 
@@ -40,13 +40,21 @@ export function verifyToken(req, res, next) {
     //Use this variable if the login is made trough the API, not the frontend
     // const token = req.header('auth-token');
     const token = req.cookies['auth-token'];
-    if (!token) return res.status(401).send('Access Denied');
+    const paramToken = req.params.token
+    if (!token || !paramToken) return res.status(401).send('Access Denied');
 
-    if (tokenBlacklist.has(token)) {
+    if (tokenBlacklist.has(token) ||tokenBlacklist.has(paramToken)) {
         return res.status(403).send('Token has been revoked');
     }
     try {
-        const verified = jwt.verify(token, constants.SECRET_KEY);
+        let verified
+        if(token){
+            verified = jwt.verify(token, constants.SECRET_KEY);
+
+        }else if(paramToken){
+            verified = jwt.verify(paramToken, constants.SECRET_KEY);
+
+        }
         req.user = verified;
         next();
     } catch (error) {

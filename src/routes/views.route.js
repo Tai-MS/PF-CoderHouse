@@ -20,6 +20,14 @@ router.get('/signup', async(req, res, next) => {
     res.render('signup');
 });
 
+router.get('/reqchangepass', async(req, res, next) => {
+    res.render('reqchangepass')
+})
+
+router.get('changepass', async(req, res, next) => {
+    res.render('changepass')
+})
+
 router.get('/cart', verifyToken, async(req, res, next) => {
     const token = req.user.email
     const user = await cartClass.getCart(token);
