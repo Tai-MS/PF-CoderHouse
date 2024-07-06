@@ -42,7 +42,6 @@ class ProductsClass{
 
     async createProd(fields){
         try {
-            console.log("pe",await productsModel.create(fields));
             return await productsModel.create(fields)
         } catch (error) {
             return error
@@ -65,8 +64,7 @@ class ProductsClass{
             if (product.stock <= 0 || (product.stock - fields.stock) <= 0) {
                 fields.stock = 0;
             }
-            await productsModel.updateOne({ _id: id }, fields);
-            return true;
+            return await productsModel.updateOne({ _id: id }, fields);
         } catch (error) {
             return { error: error.message };
         }

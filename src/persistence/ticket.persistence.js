@@ -54,7 +54,8 @@ class TicketClass {
     async generateTicket(fields) {
         try {
             const cart = await cartClass.getCart(fields);
-            const user = await userClass.getUser(cart._id);
+            const id = cart._id.toString()
+            const user = await userClass.getUser(id);
             if (cart.cartProducts.length < 1 || !user) {
                 return '1';
             }

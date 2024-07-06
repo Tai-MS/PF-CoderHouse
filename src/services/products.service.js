@@ -1,5 +1,7 @@
+import { constants } from '../utils.js'
 import productsClass from '../persistence/products.persistence.js'
 import userClass from '../persistence/user.persistence.js'
+import transport from '../utils/mailer.js'
 
 async function createProduct(fields){
     const {title, description, code, price, status, stock, category,
@@ -16,7 +18,6 @@ async function createProduct(fields){
         }
     
         if(existingCode){
-            console.log(1);
             return 1
         }
         
@@ -34,38 +35,70 @@ async function createProduct(fields){
 }
 
 async function updateProduct(fields){
-    const originalProd = await productsClass.getOne(fields.id)
-    const prodCode = fields.code
-    const originalCode = originalProd.code
-    console.log("pc",originalProd);
-    console.log("oc",originalCode);
-    if(!originalProd){
-        return 0
-    }
-    if(originalCode !== prodCode){
-        return 1
-    }
+    const originalProd = await productsClass.getOne(fields.body.id)
+    const userFound = await userClass.getUser(fields.user.email)
+    if((userFound && userFound._id.toString() === originalProd.owner.toString()) || userFound.role === 'admin'){
+        const prodCode = fields.body.code
+        const originalCode = originalProd.code
+        if(!originalProd){
+            return 0
+        }
+        if(originalCode !== prodCode){
+            return 1
+        }
+    
+        if(prodCode){
+            fields.body.code = originalCode
+        }
+        const { body, user } = fields
+        fields = {
+            ...body,
+            user: userFound._id
+        }
+        return await productsClass.updateprod(fields)
 
-    if(prodCode){
-        fields.code = originalCode
     }
-
-    return await productsClass.updateprod(fields)
-
+    return 4
 }
 
 async function deleteProduct(id){
     const product = await productsClass.getOne(id)
-
-    if(product){
-        return await productsClass.deleteProd(id)
+    if (!product) {
+        return 0; 
     }
-    return 0
+    
+    const productOwner = product.owner
+    if (productOwner !== 'admin') {
+        const productCreator = await userClass.getUser(productOwner.toString())
+        if (!productCreator || !productCreator.email) {
+            return 0; 
+        }
+
+        await transport.sendMail({
+            from: constants.USERMAILER,
+            to: productCreator.email,
+            subject: 'One of your products was deleted from the page.',
+            html:`
+              <div>
+                  <h1>We noticed something suspicious or a problem with one of your products.</h1>
+                  <p>We've decided to delete the product: ${product.title} from our ecommerce</p>
+              </div>
+          `
+        })
+    }
+    
+    return await productsClass.deleteProd(id)
 }
+
 
 async function totalPages(req, res, next){
     
 }
+
+
+async function changeAnyProduct(fields){
+
+} 
 
 async function getProduct(id){
     const product = await productsClass.getOne(id)
@@ -86,5 +119,6 @@ export default{
     deleteProduct,
     totalPages,
     getProduct,
-    getAll
+    getAll,
+    changeAnyProduct
 }

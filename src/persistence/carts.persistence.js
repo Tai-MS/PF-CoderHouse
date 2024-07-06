@@ -71,15 +71,16 @@ class CartClass {
             if (cart && product) {
                 const cartId = cart._id;
                 await this.sumTotal({ cartId, pId, quantity });
-
+    
                 const existingProductIndex = cart.cartProducts.findIndex(prod => {
                     return prod.productId.toString() === pId;
                 });
-
+    
                 if (existingProductIndex !== -1) {
                     const newQuantity = cart.cartProducts[existingProductIndex].quantity + quantity;
                     cart.cartProducts[existingProductIndex].quantity = newQuantity;
-
+                    cart.cartProducts[existingProductIndex].title = product.title;  
+    
                     return await cartModel.updateOne(
                         { _id: cartId },
                         { $set: { cartProducts: cart.cartProducts } }
@@ -87,7 +88,7 @@ class CartClass {
                 } else {
                     return await cartModel.updateOne(
                         { _id: cartId },
-                        { $push: { cartProducts: { quantity: quantity, productId: pId } } }
+                        { $push: { cartProducts: { quantity: quantity, productId: pId, title: product.title } } }  
                     );
                 }
             }
@@ -96,6 +97,7 @@ class CartClass {
             return error;
         }
     }
+    
 
     async deleteProduct(fields) {
         try {

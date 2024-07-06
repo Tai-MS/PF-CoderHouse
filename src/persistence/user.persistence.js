@@ -13,25 +13,22 @@ class UserClass {
                 return 1
             }
 
-            // Generar un _id manualmente
             const userId = new mongoose.Types.ObjectId();
 
-            // Crear el carrito con el mismo _id
             const cart = await cartClass.createCart(userId);
 
-            // Asegurar que el carrito se haya creado correctamente
             if (!cart) {
                 throw new Error('Error creating cart');
             }
 
-            // Crear el usuario con el mismo _id
             fields = {
                 ...fields,
-                _id: userId, // Asignar el mismo _id
-                cart: userId // Asumimos que el campo `cart` guarda el _id del carrito
+                _id: userId, 
+                cart: userId 
             }
 
-            await userModel.create(fields);
+            const c = await userModel.create(fields);
+            console.log('per', c);
             return true;
             
         } catch (error) {
@@ -39,19 +36,50 @@ class UserClass {
         }
     }
 
-    async getUser(email) {
+    async getAll(){
         try {
-            const user = await userModel.findOne({email: email})
-            if (user) {
-                return user
-            }
-            const userById = await userModel.findOne({_id: email})
-            if(userById){
-                return userById
-            }
-            return 0
+            const users = await userModel.find()
+            return users
         } catch (error) {
             return error
+        }
+    }
+
+    async createSession(sessionData) {
+        try {
+            console.log('create Session');
+            const session = await sessionModel.create(sessionData);
+            return session;
+        } catch (error) {
+            return error;
+        }
+    }
+
+    async getUser(emailOrObject) {
+        try {
+            const email = typeof emailOrObject === 'object' ? emailOrObject.email : emailOrObject;
+            console.log(typeof emailOrObject);
+            console.log(emailOrObject);
+            console.log(email);
+
+            // Primero intenta buscar por email
+            const user = await userModel.findOne({ email: email });
+            if (user) {
+                return user;
+            }
+
+            // Luego intenta buscar por ID, pero solo si el valor es un ObjectId válido
+            if (mongoose.Types.ObjectId.isValid(email)) {
+                const userById = await userModel.findOne({ _id: email });
+                if (userById) {
+                    return userById;
+                }
+            }
+
+            // Si no se encuentra nada, retorna null
+            return null;
+        } catch (error) {
+            return error;
         }
     }
 
@@ -63,7 +91,6 @@ class UserClass {
             if (!existingUser) {
                 return 1
             }
-
             const comparedPass = await bcrypt.compare(password, existingUser.password)
             await userModel.updateOne({email: email}, {lastConnection: fields.date})
             if (!comparedPass) {
@@ -77,8 +104,9 @@ class UserClass {
 
     async updateUser(fields) {
         try {
-            await userModel.updateOne({email: fields.email}, fields, { new: true });
-            return true;
+            const response = await userModel.updateOne({email: fields.email}, fields, { new: true });
+            console.log(response);
+            return response;
         } catch (error) {
             return error;
         }
@@ -87,7 +115,6 @@ class UserClass {
     async changePassword(fields){
         try {
             const {user, newPass} = fields
-
             return await userModel.updateOne({_id: user._id}, {password: newPass})
         } catch (error) {
             return error

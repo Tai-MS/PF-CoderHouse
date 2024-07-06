@@ -1,11 +1,13 @@
-import nodemailer from 'nodemailer'
-import { constants } from '../utils'
+import nodemailer from 'nodemailer';
+import { constants } from '../utils.js';
 
-export const transport = nodemailer.createTransport({
+const transport = nodemailer.createTransport({
     service: 'gmail',
-    port: 857,
-    auth:{
+    port: 587, 
+    auth: {
         user: constants.USERMAILER,
         pass: constants.PASSMAILER
     }
-})
+});
+
+export default transport;

@@ -22,9 +22,8 @@ async function getAll(){
 }
 
 async function getCart(fields){
-        const a= await cartClass.getCart(fields._id)
-        console.log(a);
-        return a
+        const cart = await cartClass.getCart(fields._id)
+        return cart 
     
     return 0
 }

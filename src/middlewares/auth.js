@@ -24,7 +24,7 @@ export const verifyTokenSocket = (socket, next) => {
     });
 };
 export function generateToken(req, res, next) {
-    const { email, id } = req.body; 
+    const { email, id } = req.user || req.body; 
     const token = jwt.sign({
         email: email,
         id: id
@@ -41,7 +41,8 @@ export function verifyToken(req, res, next) {
     // const token = req.header('auth-token');
     const token = req.cookies['auth-token'];
     const paramToken = req.params.token
-    if (!token || !paramToken) return res.status(401).send('Access Denied');
+    console.log('verify', token);
+    if (!token && !paramToken) return res.status(401).send('Access Denied');
 
     if (tokenBlacklist.has(token) ||tokenBlacklist.has(paramToken)) {
         return res.status(403).send('Token has been revoked');
@@ -66,5 +67,8 @@ export function revokeToken(req, res, next) {
     const token = req.cookies['auth-token'];
     if (!token) return res.status(400).send('Token is required');
     tokenBlacklist.add(token);
+    console.log('-----------------------');
+    console.log(tokenBlacklist);
+    console.log('-----------------------');
     res.status(200).render('login'); 
 }

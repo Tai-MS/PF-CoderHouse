@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
     email: {type: String, required: [true, 'Missing field: Email']},
     age: {type: Number, required: [true, 'Missing field: Age']},
     password: {type: String, required: [true, 'Missing field: Password']},
-    role: {type: String, enum: rolesEnum, default:' user'},
+    role: {type: String, enum: rolesEnum, default:rolesEnum[2]},
     cart: {type: mongoose.Schema.Types.ObjectId, ref: 'carts'},
     documents: {
         profile: [documentSchema],

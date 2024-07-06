@@ -1,7 +1,9 @@
 import usersService from '../services/users.service.js';
 import service from '../services/users.service.js'
 import transport from '../utils/mailer.js'
-
+import passport from 'passport';
+import { constants } from '../utils.js';
+import jwt from 'jsonwebtoken'
 
 async function createUser(req, res, next){
     const fields = req.body
@@ -13,7 +15,6 @@ async function createUser(req, res, next){
             other: other
             true: accomplished
     */
-    console.log(fields);
     const call = await service.createUser(fields)
     if(call === true){
         res.status(200).redirect('/')
@@ -28,37 +29,84 @@ async function createUser(req, res, next){
     }
 }
 
-async function createUserPassportGH(req, res, next){
-    
+async function getAll(req, res, next){
+    const verifyUser = req.user.email
+    const users = await service.getAll(verifyUser)
+    if(users.length > 0){
+        return res.render('allUsers', { users });
+    }
+    return res.send('No users found.')
 }
-
 async function login(req, res, next) {
     const fields = req.body;
-    const call = await service.login(fields);
     res.cookie('auth-token', res.locals.token, { httpOnly: true });
-    if (call === true) {
-        req.user = { email: fields.email, id: call.id }; 
-        res.redirect('/products')
-    } else if (call === 0) {
-        res.status(200).send('Incorrect credentials');
-    } else if (call === 1) {
-        res.status(200).send('User don`t found');
-    } else {
-        res.status(404).send('Unexpected error');
+    passport.authenticate('login', { failureRedirect: '/faillogin' })(req, res, async () => {
+        await service.login(fields);
+        res.cookie('role', req.user.role, { maxAge: 10000, signed: true });
+        res.cookie('username', req.user.firstName, { maxAge: 100000 });
+        return res.status(200).redirect('/products')
+    });
+}
+
+async function loginPassportGH(req, res, next) {
+    passport.authenticate('github', { failureRedirect: '/login' }, (err, user, info) => {
+        if (err) {
+            return next(err);
+        }
+        if (!user) {
+            return res.redirect('/login');
+        }
+        req.logIn(user, function(err) {
+            if (err) {
+                return next(err);
+            }
+            const token = jwt.sign({
+                email: user.email,
+                id: user._id
+            }, constants.SECRET_KEY, { expiresIn: '30m' });
+            res.cookie('auth-token', token, { httpOnly: true });
+            return res.redirect('/products');
+        });
+    })(req, res, next);
+}
+
+
+async function reqChangePassword(req, res, next) {
+    const email = req.body.email;
+    const user = await usersService.getUserByEmail(email);
+    if (!user) {
+        return res.status(404).send('User not found');
     }
+
+    const token = res.locals.token;
+    await transport.sendMail({
+        from: constants.USERMAILER,
+        to: email,
+        subject: 'Request for password reset',
+        html: `
+          <div>
+              <h1>Solicitud for password reset.</h1>
+              <p>We've received a notification that you want to change your password. If it was you, follow the next link:</p>
+              <p>E-Commerce CoderHouse Password Reset</p>
+              <a href="http://localhost:${constants.PORT}/changepass/${token}" style="text-decoration: none;">
+                  <button style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                      Change Password
+                  </button>
+              </a>
+          </div>
+      `
+    });
+
+    res.status(200).send('Password reset email sent');
 }
 
-async function loginPassportGH(req, res, next){
-    
-}
-
-async function reqChangePassword(req, res, next){
-    const fields = req.body.email
-    return await usersService.reqChangePass(fields)
-}
 
 async function changePassword(req, res, next){
-    const fields = req.body
+    let fields = req.body
+    fields = {
+        ...fields,
+        email: req.user
+    }
     const call = service.changePassword(fields)
     res.send(call)
 }
@@ -73,22 +121,54 @@ async function updateUser(req, res, next){
     }
 }
 
+async function upload(req, res, next){
+    if(!req.file){
+        return res.redirect('/upload')
+    }
+    await usersService.upload(req)
+    return res.status(200).send('File uploaded')
+}
+
 async function logout(req, res, next){
-    
+    if (req.session && req.session.passport.user) {
+        res.clearCookie('username');
+        res.clearCookie('role');
+        req.session.destroy((err) => {
+            if (err) {
+                console.error('Error destroying session:', err);
+                res.status(500).send('Internal server error');
+            } else {
+                setTimeout(() => {
+                    res.redirect('/');
+                }, 500)
+            }
+        });
+    } else {
+        console.log('No user session found');
+        res.redirect('/');
+    }
 }
 
 async function changeRole(req, res, next){
-    
+    const fields = {
+        email: req.user.email,
+        otherUserEmail: req.body.otherUserEmail,
+        role: req.body.role
+    }
+    console.log(fields);
+    const call = await service.changeRole(fields)
+    return res.send(call)
 }
 
 export default{
     createUser,
-    createUserPassportGH,
+    getAll,
     login,
     loginPassportGH,
     changePassword,
     updateUser,
     logout,
     changeRole,
-    reqChangePassword
+    reqChangePassword,
+    upload
 }

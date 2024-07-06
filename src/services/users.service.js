@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'
 import { generateToken } from "../middlewares/auth.js";
 import transport from '../utils/mailer.js'
 import { constants } from "../utils.js";
+import path from "path";
 
 async function createUser(fields){
     
@@ -24,7 +25,7 @@ async function createUser(fields){
         email: email,
         age: age,
         password: hashedPass,
-        role: 'user',
+        role: 0,
         documents: [],
         lastConnection: 'None'
     }
@@ -32,8 +33,14 @@ async function createUser(fields){
     return await userClass.createUser(userData)
 }
 
-async function createUserPassportGH(){
-    
+async function getAll(verifyUser){
+    const user = await userClass.getUser(verifyUser)
+    if(user.role === 'admin'){
+        console.log('entraste');
+        return await userClass.getAll()
+    }
+    console.log('no podes entrar');
+    return 'You can not access here.'
 }
 
 async function login(fields){
@@ -43,6 +50,8 @@ async function login(fields){
         return 0
     }
     fields.date = date
+
+    
     return userClass.login(fields)
 }
 
@@ -50,16 +59,17 @@ async function loginPassportGH(){
     
 }
 
-async function reqChangePass(fields){
-    const user = userClass.getUser(fields)
+async function reqChangePass(req, res, next){
+    const email = req.email
+    const user = userClass.getUser(email)
     if(!user){
         return 0
     }
 
-    const token = generateToken({ email: fields.email });
+    const token = generateToken(res, email, next);
     await transport.sendEmail({
         from: constants.USERMAILER,
-        to: fields,
+        to: req,
         subject: 'Request for password reset.',
         html: `
           <div>
@@ -78,21 +88,20 @@ async function reqChangePass(fields){
 }
 
 async function changePassword(fields){
-    const {email, newPass, confirmNewPass} = fields
+    const {email, password, confirmPass} = fields
     const user = await userClass.getUser(email)
-    if(!email || !newPass || !confirmNewPass || !user){
+    if(!email || !password || !confirmPass || !user){
         return 0
     }
-
-    const comparedWithOldPass = await bcrypt.compare(newPass, user.password)
+    const comparedWithOldPass = await bcrypt.compare(password, user.password)
     if(comparedWithOldPass){
-        return 1
+        return 3
     }
     
-    if(newPass != confirmNewPass){
+    if(password != confirmPass){
         return 2
     }
-    const hashedNewPass = bcrypt.hash(newPass)
+    const hashedNewPass = await bcrypt.hash(password, 10)
     fields = {
         ...fields,
         user: user,
@@ -103,8 +112,17 @@ async function changePassword(fields){
 }
 
 async function updateUser(fields) {
-    const user = await userClass.getUser(fields.email);
+    let user = await userClass.getUser(fields.email);
 
+    if(user.role !== 'admin'){
+        delete fields.role
+        delete fields.password
+    }
+
+    if(user.role === 'admin' && fields.emailOfOther !== undefined){
+        user = await userClass.getUser(fields.emailOfOther)
+        fields.email = fields.emailOfOther
+    }
     if (!user) {
         return 1; 
     }
@@ -112,6 +130,7 @@ async function updateUser(fields) {
     const [firstName, lastName] = user.fullName.split(' ');
 
     let newFields = { ...fields };
+
 
     if (firstName !== fields.firstName && lastName !== fields.lastName) {
         newFields = {
@@ -130,23 +149,84 @@ async function updateUser(fields) {
     return await userClass.updateUser(newFields);
 }
 
+async function upload(req){
+    const fields = {
+        file: req.body.file,
+        body: req.body,
+        user: req.user
+    }
+    const user = await userClass.getUser(fields.user)
+    const file = await fields.file
+    let documentData
+    if(user && file !== null){
+        documentData = {
+            name: file[1],
+            reference: path.join('multer', req.body.file[0] == 0 ? 'profiles' : req.body.file[0] == 1 ? 'products' : 'documents', req.file.filename)
+        }
+    }
+    if(fields.body.file[0] == 0){
+        user.documents.profile = documentData
+    }else if(fields.body.file[0] == 1){
+        user.documents.products = documentData
+    }else{
+        user.documents.documents = documentData
+    }
+
+    return await user.save()
+}
 
 async function logout(){
     
 }
 
-async function changeRole(){
+async function changeRole(fields){
+    const user = await userClass.getUser(fields.email)
+    let newFields = {}
+    const newRole = fields.role.toLowerCase()
+    if(newRole !== 'user' && newRole !== 'admin' && newRole !== 'premium'){
+        return 2
+    }
+    if(user.role === 'admin'){
+        
+        const otherUser = await userClass.getUser(fields.otherUserEmail)
+        
+        if(otherUser && fields.role){
+            newFields = {
+                email: otherUser.email,
+                role: newRole
+            }
+            return await userClass.updateUser(newFields)
+        }
+    }
+    newFields = {
+        email: fields.email,
+        role: 'premium'
+    }
+    const docsProducts = user.documents.products
+    const docsProfile = user.documents.profile
+    const docsDocuments = user.documents.documents
     
+    
+    if(docsDocuments.length > 0 && docsProducts.length > 0 && docsProfile.length > 0){
+        return await userClass.updateUser(newFields)
+    }
+    return "0"
 }
 
-export default{
+async function getUserByEmail(email) {
+    return await userClass.getUser(email);
+}
+
+export default {
     createUser,
-    createUserPassportGH,
+    getAll,
     login,
     loginPassportGH,
     changePassword,
     updateUser,
     logout,
     changeRole,
-    reqChangePass
+    reqChangePass,
+    getUserByEmail,
+    upload
 }
