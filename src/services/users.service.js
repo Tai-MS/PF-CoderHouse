@@ -66,6 +66,10 @@ async function reqChangePass(req, res, next){
         return 0
     }
 
+    console.log(req.protocol + '://' + req.get('host') + req.originalUrl);
+    console.log(req.protocol);
+    console.log(req.get('host'));
+    console.log(req.originalUrl);
     const token = generateToken(res, email, next);
     console.log('token antes de enviar email', token);
     console.log('verify token dsp ', verifyToken(token));
@@ -78,7 +82,7 @@ async function reqChangePass(req, res, next){
               <h1>Solicitud for password reset.</h1>
               <p>We've received a notification that you want to change your password. If it was you, follow the next link: ${fields}.</p>
               <p>E-Commerce CoderHouse Password Reset</p>
-              <a href="http://localhost:8080/changepass/${token}" style="text-decoration: none;">
+              <a href="http://localhost:${constants.PORT}/changepass/${token}" style="text-decoration: none;">
                   <button style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
                       Change Password
                   </button>

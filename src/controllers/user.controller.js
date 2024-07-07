@@ -77,7 +77,11 @@ async function reqChangePassword(req, res, next) {
     if (!user) {
         return res.status(404).send('User not found');
     }
-
+    const url = req.protocol + '://' + req.get('host')
+    console.log(req.protocol + '://' + req.get('host') + req.originalUrl);
+    console.log(req.protocol);
+    console.log(req.get('host'));
+    console.log(req.originalUrl);
     const token = res.locals.token;
     await transport.sendMail({
         from: constants.USERMAILER,
@@ -88,7 +92,7 @@ async function reqChangePassword(req, res, next) {
               <h1>Solicitud for password reset.</h1>
               <p>We've received a notification that you want to change your password. If it was you, follow the next link:</p>
               <p>E-Commerce CoderHouse Password Reset</p>
-              <a href="http://localhost:${constants.PORT}/changepass/${token}" style="text-decoration: none;">
+              <a href="${url}/changepass/${token}" style="text-decoration: none;">
                   <button style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
                       Change Password
                   </button>
