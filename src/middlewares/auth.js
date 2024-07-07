@@ -41,19 +41,20 @@ export function verifyToken(req, res, next) {
     // const token = req.header('auth-token');
     const token = req.cookies['auth-token'];
     const paramToken = req.params.token
-    console.log('verify', token);
     if (!token && !paramToken) return res.status(401).send('Access Denied');
-
+    
     if (tokenBlacklist.has(token) ||tokenBlacklist.has(paramToken)) {
         return res.status(403).send('Token has been revoked');
     }
     try {
+        console.log('verify', token);
+        console.log('verify', paramToken);
         let verified
-        if(token){
-            verified = jwt.verify(token, constants.SECRET_KEY);
-
-        }else if(paramToken){
+        if(paramToken){
             verified = jwt.verify(paramToken, constants.SECRET_KEY);
+
+        }else if(token){
+            verified = jwt.verify(token, constants.SECRET_KEY);
 
         }
         req.user = verified;
