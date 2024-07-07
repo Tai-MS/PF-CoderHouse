@@ -28,7 +28,7 @@ app.use(session({
     saveUninitialized: false,
     store: MongoStore.create({
         mongoUrl: constants.MONGO_CONNECT,
-        ttl: 15,
+        ttl: 10000,
     }),
     secret: constants.SECRET_KEY,
     resave: false,
