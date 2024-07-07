@@ -87,10 +87,18 @@ const initializePassport = () => {
     passport.use('github', new GitHubStrategy({
         clientID: process.env.GITHUB_CLIENT_ID,
         clientSecret: process.env.GITHUB_CLIENT_SECRET,
-        callbackURL: process.env.GITHUB_CALLBACK_URL
+        callbackURL: process.env.GITHUB_CALLBACK_URL,
+        scope: ['user:email']
     }, async (accessToken, refreshToken, profile, done) => {
         try {
-            let user = await userClass.getUser(profile._json.email);
+            let email = null;
+            if (profile.emails && profile.emails.length > 0) {
+                email = profile.emails[0].value;
+            } else {
+                return done(null, false, { message: 'No email found in GitHub profile' });
+            }
+    
+            let user = await userClass.getUser(email);
             if (!user) {
                 const [firstName, lastName] = profile._json.name.split(' ');
                 const fullName = `${firstName} ${lastName || ''}`;
@@ -101,12 +109,12 @@ const initializePassport = () => {
                     password: ' '
                 };
                 let result = await userClass.createUser(newUser);
-                done(null, result);
+                return done(null, result);
             } else {
-                done(null, user);
+                return done(null, user);
             }
         } catch (error) {
-            done(error);
+            return done(error);
         }
     }));
 };

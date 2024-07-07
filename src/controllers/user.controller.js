@@ -16,8 +16,7 @@ async function createUser(req, res, next){
             true: accomplished
     */
     const call = await service.createUser(fields)
-    console.log(call);
-    if(call === true){
+    if(call){
         res.status(200).redirect('/')
     }else if(call === 0){
         res.status(200).send('Missing fields')

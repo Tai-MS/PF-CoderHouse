@@ -28,8 +28,7 @@ class UserClass {
             }
 
             const c = await userModel.create(fields);
-            console.log('per', c);
-            return true;
+            return c;
             
         } catch (error) {
             return error;
