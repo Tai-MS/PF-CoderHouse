@@ -1,6 +1,6 @@
 import userClass from "../persistence/user.persistence.js";
 import bcrypt from 'bcrypt'
-import { generateToken } from "../middlewares/auth.js";
+import { generateToken, verifyToken } from "../middlewares/auth.js";
 import transport from '../utils/mailer.js'
 import { constants } from "../utils.js";
 import path from "path";
@@ -67,6 +67,8 @@ async function reqChangePass(req, res, next){
     }
 
     const token = generateToken(res, email, next);
+    console.log('token antes de enviar email', token);
+    console.log('verify token dsp ', verifyToken(token));
     await transport.sendEmail({
         from: constants.USERMAILER,
         to: req,
