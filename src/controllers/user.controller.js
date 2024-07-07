@@ -78,11 +78,12 @@ async function reqChangePassword(req, res, next) {
         return res.status(404).send('User not found');
     }
     const url = req.protocol + '://' + req.get('host')
-    console.log(req.protocol + '://' + req.get('host') + req.originalUrl);
-    console.log(req.protocol);
-    console.log(req.get('host'));
-    console.log(req.originalUrl);
+    // console.log(req.protocol + '://' + req.get('host') + req.originalUrl);
+    // console.log(req.protocol);
+    // console.log(req.get('host'));
+    // console.log(req.originalUrl);
     const token = res.locals.token;
+    console.log('pre send', token);
     await transport.sendMail({
         from: constants.USERMAILER,
         to: email,
