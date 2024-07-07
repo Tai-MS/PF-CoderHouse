@@ -25,7 +25,7 @@ async function createUser(fields){
         email: email,
         age: age,
         password: hashedPass,
-        role: 0,
+        role: 'user',
         documents: [],
         lastConnection: 'None'
     }
