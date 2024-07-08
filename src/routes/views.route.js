@@ -4,6 +4,7 @@ import { generateToken, verifyToken, revokeToken } from '../middlewares/auth.js'
 import cartClass from '../persistence/carts.persistence.js'
 import passport from 'passport';
 import session from 'express-session';
+import { addLogger } from '../utils/logger.js';
 import initializePassport from '../config/passport.config.js';
 import userController from '../controllers/user.controller.js';
 const router = express.Router()
@@ -11,6 +12,11 @@ const router = express.Router()
 initializePassport();
 router.use(passport.initialize());
 router.use(passport.session());
+
+const loggerMiddleware = (req, res, next) => {
+    addLogger(req, res, next); 
+  };
+  router.use(loggerMiddleware);
 
 router.get('/products', verifyToken, async(req, res, next) => {
     const token = req.user.email

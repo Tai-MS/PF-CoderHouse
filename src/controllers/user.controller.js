@@ -4,6 +4,9 @@ import transport from '../utils/mailer.js'
 import passport from 'passport';
 import { constants } from '../utils.js';
 import jwt from 'jsonwebtoken'
+import { addLogger } from '../utils/logger.js'
+
+
 
 async function createUser(req, res, next){
     const fields = req.body
@@ -16,15 +19,15 @@ async function createUser(req, res, next){
             true: accomplished
     */
     const call = await service.createUser(fields)
-    if(call){
-        res.status(200).redirect('/')
-    }else if(call === 0){
+    if(call === 0){
         res.status(200).send('Missing fields')
     }else if(call === 1){
         res.status(200).send('Email already in use')
     }else if(call === 2){
         res.status(200).send('Passwords doesn`t match')
-    }else{
+    }else if(call){
+        res.status(200).redirect('/')
+    }else {
         res.status(404).send('Unexpected error')
     }
 }
@@ -33,6 +36,7 @@ async function getAll(req, res, next){
     const verifyUser = req.user.email
     const users = await service.getAll(verifyUser)
     if(users === 0){
+        req.logger.warning('Unauthorized user tried to get all users')
         return res.send('You can not access here.')
     }
     if(users.length > 0){
@@ -41,12 +45,12 @@ async function getAll(req, res, next){
     return res.send('No users found.')
 }
 async function login(req, res, next) {
+    
     const fields = req.body;
+    req.logger.info('INFO: login')
     res.cookie('auth-token', res.locals.token, { httpOnly: true });
     passport.authenticate('login', { failureRedirect: '/faillogin' })(req, res, async () => {
         await service.login(fields);
-        // res.cookie('role', req.user.role, { maxAge: 10000, signed: true });
-        // res.cookie('username', req.user.firstName, { maxAge: 100000 });
         return res.status(200).redirect('/products')
     });
 }
@@ -81,12 +85,7 @@ async function reqChangePassword(req, res, next) {
         return res.status(404).send('User not found');
     }
     const url = req.protocol + '://' + req.get('host')
-    // console.log(req.protocol + '://' + req.get('host') + req.originalUrl);
-    // console.log(req.protocol);
-    // console.log(req.get('host'));
-    // console.log(req.originalUrl);
     const token = res.locals.token;
-    console.log('pre send', token);
     await transport.sendMail({
         from: constants.USERMAILER,
         to: email,
@@ -122,7 +121,7 @@ async function changePassword(req, res, next){
 async function updateUser(req, res, next){
     const fields = req.body
     const call = await service.updateUser(fields);
-    if(call === true){
+    if(call.acknowledged === true){
         res.status(200).send('User updated')
     }else{
         res.status(404).send('Unexpected error')
@@ -151,7 +150,6 @@ async function logout(req, res, next){
             }
         });
     } else {
-        console.log('No user session found');
         res.redirect('/');
     }
 }
@@ -162,9 +160,19 @@ async function changeRole(req, res, next){
         otherUserEmail: req.body.otherUserEmail,
         role: req.body.role
     }
-    console.log(fields);
+    
     const call = await service.changeRole(fields)
     return res.send(call)
+}
+
+async function deleteUser(req, res, next){
+    const fields = {
+        token: req.user.email,
+        otherUser: req.body.otherEmail
+    }
+
+    const call = await service.deleteUser(fields)
+    return res.status(200).send(call)
 }
 
 async function deleteInactive(req, res, next){
@@ -172,8 +180,6 @@ async function deleteInactive(req, res, next){
         userToken: req.user.email,
         days: req.body.days
     }
-    console.log('fields', fields);
-     console.log(await service.deleteInactive(fields))
 }
 
 export default{
@@ -187,5 +193,6 @@ export default{
     changeRole,
     reqChangePassword,
     upload,
-    deleteInactive
+    deleteInactive,
+    deleteUser
 }

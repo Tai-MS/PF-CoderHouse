@@ -47,7 +47,6 @@ class UserClass {
 
     async createSession(sessionData) {
         try {
-            console.log('create Session');
             const session = await sessionModel.create(sessionData);
             return session;
         } catch (error) {
@@ -58,9 +57,6 @@ class UserClass {
     async getUser(emailOrObject) {
         try {
             const email = typeof emailOrObject === 'object' ? emailOrObject.email : emailOrObject;
-            console.log(typeof emailOrObject);
-            console.log(emailOrObject);
-            console.log(email);
 
             // Primero intenta buscar por email
             const user = await userModel.findOne({ email: email });
@@ -105,7 +101,6 @@ class UserClass {
     async updateUser(fields) {
         try {
             const response = await userModel.updateOne({email: fields.email}, fields, { new: true });
-            console.log(response);
             return response;
         } catch (error) {
             return error;
@@ -121,29 +116,32 @@ class UserClass {
         }
     }
 
+    async deleteUser(userToDelete){
+        try {
+            return await userModel.deleteOne({email: userToDelete})
+        } catch (error) {
+            return error
+        }
+    }
+
     async deleteInactive(days) {
         try {
             const inactivityTime = days * 24 * 60 * 60 * 1000;
             const dateLimit = new Date(Date.now() - inactivityTime);
     
-            console.log(`Deleting users inactive since: ${dateLimit}`);
     
             const usersToDelete = await userModel.find({
                 lastConnection: { $lt: dateLimit },
                 role: { $nin: ['admin', 'premium'] }  
             });
     
-            console.log('Users to delete:', usersToDelete);
     
             const result = await userModel.deleteMany({
                 lastConnection: { $lt: dateLimit },
                 role: { $nin: ['admin', 'premium'] } 
             });
-    
-            console.log(`Deleted ${result.deletedCount} inactive users.`);
             return result;
         } catch (error) {
-            console.error('Error deleting inactive users:', error);
             return error;
         }
     }

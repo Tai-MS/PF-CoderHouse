@@ -11,6 +11,8 @@ async function createProduct(req, res, next){
         return res.status(200).send('Missing fields.')
     }else if(call === 1){
         return res.status(200).send('Code already exists.')
+    }else if(call === 3){
+        return res.status(200).send('You must be premium to create a product.')
     }
 
     return res.status(200).send('Product created.')

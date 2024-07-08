@@ -10,7 +10,7 @@ export const constants = {
     PORT: process.env.PORT,
     MONGO_CONNECT: process.env.MONGO_CONNECT,
     SECRET_KEY: process.env.SECRET_KEY,
-    ENVI: process.env.ENVI,
+    ENVIRONMENT: process.env.ENVIRONMENT,
     ADMIN_EMAIL: process.env.ADMIN_EMAIL,
     USERMAILER: process.env.USERMAILER,
     PASSMAILER: process.env.PASSMAILER

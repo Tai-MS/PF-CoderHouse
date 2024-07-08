@@ -9,6 +9,9 @@ async function createUser(fields){
     
     const {firstName, lastName, email, age, password, confirmPass } = fields
 
+    password.toString()
+    confirmPass.toString()
+
     if(!firstName || !lastName || !email || !age || !password ||!confirmPass){
         return 0
     }
@@ -19,7 +22,6 @@ async function createUser(fields){
     }
         
     const hashedPass = await bcrypt.hash(password, 10);
-
     const userData = {
         fullName: fullName,
         email: email,
@@ -35,12 +37,9 @@ async function createUser(fields){
 
 async function getAll(verifyUser){
     const user = await userClass.getUser(verifyUser)
-    console.log(user.role);
     if(user.role === 'admin'){
-        console.log('entraste');
         return await userClass.getAll()
     }
-    console.log('no podes entrar');
     return 0
 }
 
@@ -66,32 +65,6 @@ async function reqChangePass(req, res, next){
     if(!user){
         return 0
     }
-
-    // console.log(req.protocol + '://' + req.get('host') + req.originalUrl);
-    // console.log(req.protocol);
-    // console.log(req.get('host'));
-    // console.log(req.originalUrl);
-    // const token = generateToken(res, email, next);
-    // console.log('token antes de enviar email', token);
-    // console.log('verify token dsp ', verifyToken(token));
-    // await transport.sendEmail({
-    //     from: constants.USERMAILER,
-    //     to: req,
-    //     subject: 'Request for password reset.',
-    //     html: `
-    //       <div>
-    //           <h1>Solicitud for password reset.</h1>
-    //           <p>We've received a notification that you want to change your password. If it was you, follow the next link: ${fields}.</p>
-    //           <p>E-Commerce CoderHouse Password Reset</p>
-    //           <a href="http://localhost:${constants.PORT}/changepass/${token}" style="text-decoration: none;">
-    //               <button style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
-    //                   Change Password
-    //               </button>
-    //           </a>
-    //       </div>
-    //   `
-
-    // })
 }
 
 async function changePassword(fields){
@@ -224,11 +197,23 @@ async function getUserByEmail(email) {
     return await userClass.getUser(email);
 }
 
+async function deleteUser(fields){
+    const { token, otherUser } = fields
+    const userToken = await userClass.getUser(token)
+    const otherUserToDelete = await userClass.getUser(otherUser)
+    if(userToken.role === 'admin' && otherUserToDelete){
+        return await userClass.deleteUser(otherUser)
+    }
+
+    if(!userToken){
+        return 'error'
+    }
+    return await userClass.deleteUser(token)
+}
+
 async function deleteInactive(fields){
-    console.log('inactica');
     const { userToken, days } = fields
     const user = await userClass.getUser(userToken)
-    console.log(days);
     if(user.role === 'admin'){
         return await userClass.deleteInactive(days)
     }
@@ -246,5 +231,6 @@ export default {
     reqChangePass,
     getUserByEmail,
     upload,
-    deleteInactive
+    deleteInactive,
+    deleteUser
 }

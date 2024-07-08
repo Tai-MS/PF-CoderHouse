@@ -9,7 +9,6 @@ async function createProduct(fields){
     } = fields
 
     const userRole = await userClass.getUser(user)
-    console.log(userRole);
     if(userRole.role === 'admin' || userRole.role === 'premium'){
         const existingCode = await productsClass.verifyCode(code)
     
@@ -37,6 +36,7 @@ async function createProduct(fields){
 async function updateProduct(fields){
     const originalProd = await productsClass.getOne(fields.body.id)
     const userFound = await userClass.getUser(fields.user.email)
+    console.log('ori', originalProd);
     if((userFound && userFound._id.toString() === originalProd.owner.toString()) || userFound.role === 'admin'){
         const prodCode = fields.body.code
         const originalCode = originalProd.code
