@@ -34,6 +34,8 @@ async function getAll(req, res, next){
     const users = await service.getAll(verifyUser)
     if(users.length > 0){
         return res.render('allUsers', { users });
+    }else if(users){
+        return res.send(users)
     }
     return res.send('No users found.')
 }
