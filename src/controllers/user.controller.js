@@ -32,10 +32,11 @@ async function createUser(req, res, next){
 async function getAll(req, res, next){
     const verifyUser = req.user.email
     const users = await service.getAll(verifyUser)
+    if(users === 0){
+        return res.send('You can not access here.')
+    }
     if(users.length > 0){
         return res.render('allUsers', { users });
-    }else if(users){
-        return res.send(users)
     }
     return res.send('No users found.')
 }

@@ -41,7 +41,7 @@ async function getAll(verifyUser){
         return await userClass.getAll()
     }
     console.log('no podes entrar');
-    return 'You can not access here.'
+    return 0
 }
 
 async function login(fields){
