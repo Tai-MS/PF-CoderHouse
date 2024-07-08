@@ -35,6 +35,7 @@ async function createUser(fields){
 
 async function getAll(verifyUser){
     const user = await userClass.getUser(verifyUser)
+    console.log(user.role);
     if(user.role === 'admin'){
         console.log('entraste');
         return await userClass.getAll()
