@@ -36,5 +36,6 @@ router.get('/auth/github', generateToken, passport.authenticate('github', { scop
 
 router.get('/auth/github/callback',userController.loginPassportGH)
 
+router.delete('/deleteinactive', verifyToken, userController.deleteInactive)
 
 export default router;

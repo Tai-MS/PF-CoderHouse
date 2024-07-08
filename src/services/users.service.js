@@ -223,6 +223,16 @@ async function getUserByEmail(email) {
     return await userClass.getUser(email);
 }
 
+async function deleteInactive(fields){
+    console.log('inactica');
+    const { userToken, days } = fields
+    const user = await userClass.getUser(userToken)
+    console.log(days);
+    if(user.role === 'admin'){
+        return await userClass.deleteInactive(days)
+    }
+}
+
 export default {
     createUser,
     getAll,
@@ -234,5 +244,6 @@ export default {
     changeRole,
     reqChangePass,
     getUserByEmail,
-    upload
+    upload,
+    deleteInactive
 }

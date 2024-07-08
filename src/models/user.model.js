@@ -7,7 +7,6 @@ const rolesEnum = [
     'user'
 ]
 
-//Schema for the documents field
 const documentSchema = new mongoose.Schema({
     name: String,
     reference: String
@@ -15,7 +14,6 @@ const documentSchema = new mongoose.Schema({
 
 const usersCollection = 'users'
 
-//The user schema, fullName is composed of firstName and lastName
 const userSchema = new mongoose.Schema({
     fullName: {type: String, required: [true, 'Missing field: Name']},
     email: {type: String, required: [true, 'Missing field: Email']},
@@ -28,7 +26,7 @@ const userSchema = new mongoose.Schema({
         products: [documentSchema],
         documents: [documentSchema],
     },
-    lastConnection: {type: String}
+    lastConnection: { type: Date, default: Date.now },
 })
 
 const userModel = mongoose.model(usersCollection, userSchema)

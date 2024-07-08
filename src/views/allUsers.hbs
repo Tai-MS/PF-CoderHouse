@@ -16,6 +16,7 @@
                     <th>Full Name</th>
                     <th>Email</th>
                     <th>Role</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="user-table-body">
@@ -25,6 +26,10 @@
                     <td>{{this.fullName}}</td>
                     <td>{{this.email}}</td>
                     <td>{{this.role}}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="editUser('{{this._id}}')">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteUser('{{this._id}}')">Delete</button>
+                    </td>
                 </tr>
                 {{/each}}
             </tbody>

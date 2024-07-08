@@ -23,8 +23,9 @@ class UserClass {
 
             fields = {
                 ...fields,
-                _id: userId, 
-                cart: userId 
+                _id: userId,
+                cart: userId,
+                lastConnection: new Date() // Ensure it's a Date object
             }
 
             const c = await userModel.create(fields);
@@ -119,6 +120,34 @@ class UserClass {
             return error
         }
     }
+
+    async deleteInactive(days) {
+        try {
+            const inactivityTime = days * 24 * 60 * 60 * 1000;
+            const dateLimit = new Date(Date.now() - inactivityTime);
+    
+            console.log(`Deleting users inactive since: ${dateLimit}`);
+    
+            const usersToDelete = await userModel.find({
+                lastConnection: { $lt: dateLimit },
+                role: { $nin: ['admin', 'premium'] }  
+            });
+    
+            console.log('Users to delete:', usersToDelete);
+    
+            const result = await userModel.deleteMany({
+                lastConnection: { $lt: dateLimit },
+                role: { $nin: ['admin', 'premium'] } 
+            });
+    
+            console.log(`Deleted ${result.deletedCount} inactive users.`);
+            return result;
+        } catch (error) {
+            console.error('Error deleting inactive users:', error);
+            return error;
+        }
+    }
+    
 }
 
 const userClass = new UserClass();

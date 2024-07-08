@@ -42,8 +42,8 @@ async function login(req, res, next) {
     res.cookie('auth-token', res.locals.token, { httpOnly: true });
     passport.authenticate('login', { failureRedirect: '/faillogin' })(req, res, async () => {
         await service.login(fields);
-        res.cookie('role', req.user.role, { maxAge: 10000, signed: true });
-        res.cookie('username', req.user.firstName, { maxAge: 100000 });
+        // res.cookie('role', req.user.role, { maxAge: 10000, signed: true });
+        // res.cookie('username', req.user.firstName, { maxAge: 100000 });
         return res.status(200).redirect('/products')
     });
 }
@@ -164,6 +164,15 @@ async function changeRole(req, res, next){
     return res.send(call)
 }
 
+async function deleteInactive(req, res, next){
+    const fields = {
+        userToken: req.user.email,
+        days: req.body.days
+    }
+    console.log('fields', fields);
+     console.log(await service.deleteInactive(fields))
+}
+
 export default{
     createUser,
     getAll,
@@ -174,5 +183,6 @@ export default{
     logout,
     changeRole,
     reqChangePassword,
-    upload
+    upload,
+    deleteInactive
 }
