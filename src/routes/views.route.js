@@ -54,4 +54,8 @@ router.get('/cart', verifyToken, async(req, res, next) => {
 
 router.get('/allusers', verifyToken, userController.getAll);
 
+router.get('/faillogin', (req, res, next) => {
+    res.render('faillogin')
+})
+
 export default router;
