@@ -8,7 +8,8 @@ import multer from 'multer'
 import session from 'express-session'
 import MongoStore from 'connect-mongo'; 
 import passport from 'passport';
-
+import cors from 'cors'
+ 
 //Internal imports
 import { __dirname, constants, rootDir } from './utils.js';
 import { connections, connectDB } from './utils/database.js';
@@ -38,6 +39,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 const server = createServer(app);
 const io = new Server(server);
+
+app.use(cors({
+    origin: '*'
+}));
 
 //Multer config
 const upload = multer({ dest: __dirname + '/multer' });
